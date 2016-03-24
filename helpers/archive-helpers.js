@@ -49,15 +49,27 @@ exports.isUrlInList = function(url, callback) {
   });
 };
 
-exports.addUrlToList = function(url, list) {
-  fs.appendFile(exports.paths.list, url, 'utf8', function() {
-
+exports.addUrlToList = function(url, callback) {
+  fs.appendFile(exports.paths.list, url, 'utf8', function(err) {
+    if (err) {
+      callback(err);
+    } else {
+      callback();
+    }
   });
   //var fsa = Promise.promisify(fs.appendFile);
 };
 
-exports.isUrlArchived = function(url, list) {
-  // check 
+exports.isUrlArchived = function(url, callback) {
+  // check
+  fs.readFile(exports.paths.archivedSites, 'utf8', function(err, contents) {
+    if (err) {
+      callback(err);
+    } else {
+      var urlArray = contents.split('\n');
+      callback(urlArray.indexOf(url) !== -1);
+    }
+  });
 };
 
 exports.downloadUrls = function(url, fileDest, cb) {
@@ -70,6 +82,6 @@ exports.downloadUrls = function(url, fileDest, cb) {
     });
   }).on('error', function(err) { // Handle errors
     fs.unlink(dest); // Delete the file async. (But we don't check the result)
-    if (cb) cb(err.message);
+    if (cb) { cb(err.message); }
   });
 };
