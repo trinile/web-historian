@@ -74,8 +74,6 @@ exports.isUrlArchived = function(url, callback) {
 };
 
 exports.downloadUrls = function(urlArray) {
-  //get list of urls in sites.txt 
-  // request('http://google.com/doodle.png').pipe(fs.createWriteStream('doodle.png'))
   _.each(urlArray, function(url) {
     if (url.indexOf('http://') === -1) {
       urlReal = 'http://' + url;

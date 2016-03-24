@@ -29,3 +29,9 @@ exports.handleRequest = function (req, res) {
 };
 
 
+//upon form submission of website
+  //validate it is a correct url 
+    //ask a header from that website.
+  //if correct url
+    //save url to site list
+    //download the url
