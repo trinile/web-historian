@@ -17,13 +17,23 @@ var router = {
   '/styles.css': handler.handleRequest
 };
 
+/*
+'/www.xyz.com'
+test if we have www.xyz.com donwloaded or pending
+
+*/
+
 var server = http.createServer( function(req, res) {
   console.log('Serving request type ' + req.method + ' for url ' + req.url);
 
-  var route = router[url.parse(req.url).pathname];
-  if (route) {
-    route(req, res);
-  } else {
+  var route = url.parse(req.url).pathname;
+  console.log(route);
+
+  if (router[route]) { //user is requesting somethign from our own site '/websitename'
+    router[route](req, res);
+  } else if ( route ) {
+
+  } else {  //error
     httpHelper.sendResponse(res, '', 404);
   }
 });

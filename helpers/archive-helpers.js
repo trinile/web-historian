@@ -4,7 +4,7 @@ var _ = require('underscore');
 var Promise = require('bluebird');
 var http = require('http');
 var request = require('request');
-
+var url = require('url');
 /*
  * You will need to reuse the same paths many times over in the course of this sprint.
  * Consider using the `paths` object below to store frequently used file paths. This way,
@@ -30,17 +30,19 @@ exports.initialize = function(pathsObj) {
 
 exports.readListOfUrls = function(callback) { //urls is an array
   // fs.readFile
-  fs.readFile(exports.paths.list, 'utf8', function(err, contents) {
-    if (err) {
-      callback(err);
-    } else {
-      callback(contents.split('\n'));
-    }
+  return new Promise(function(resolve, reject) {
+    fs.readFile(exports.paths.list, 'utf8', function(err, contents) {
+      if (err) {
+        reject( callback(err) );
+      } else {
+        resolve( callback(contents.split('\n')) );
+      }
+    });  
   });
 };
 
 exports.isUrlInList = function(url, callback) {
-  //do this check first when user submits url
+//do this check first when user submits url
   fs.readFile(exports.paths.list, 'utf8', function(err, contents) {
     if (err) {
       callback(err);
@@ -50,6 +52,8 @@ exports.isUrlInList = function(url, callback) {
     }
   });
 };
+
+exports.isUrlInList = Promise.promisify(exports.isUrlInList);
 
 exports.addUrlToList = function(url, callback) {
   fs.appendFile(exports.paths.list, url, 'utf8', function(err) {
@@ -60,27 +64,51 @@ exports.addUrlToList = function(url, callback) {
     }
   });
 };
+exports.addUrlToList = Promise.promisify(exports.addUrlToList);
 
 exports.isUrlArchived = function(url, callback) {
-
   fs.readFile(exports.paths.archivedSites, 'utf8', function(err, contents) {
     if (err) {
-      callback(err);
+      (callback(err));
     } else {
       var urlArray = contents.split('\n');
-      callback(urlArray.indexOf(url) !== -1);
+      (callback(urlArray.indexOf(url) !== -1));
     }
   });
 };
+exports.isUrlArchived = Promise.promisify(exports.isUrlArchived);
 
-exports.downloadUrls = function(urlArray) {
-  _.each(urlArray, function(url) {
-    if (url.indexOf('http://') === -1) {
-      urlReal = 'http://' + url;
-    }
-    request(urlReal).pipe(fs.createWriteStream(exports.paths.archivedSites + '/' + url));
+exports.downloadUrls = function(urlArray, cb) {
+  return new Promise(function(resolve, reject) {
+    _.each(urlArray, function(url) {
+      if (url.indexOf('http://') === -1) {
+        urlReal = 'http://' + url;
+      }
+      var stream = fs.createWriteStream(exports.paths.archivedSites + '/' + url);
+      request(urlReal).pipe(stream);
+      stream.on('error', function(err) {
+        reject(err);
+      });
+    });
+    resolve(cb);
   });
-
-  console.log(fs.readdirSync(exports.paths.archivedSites));
+  // console.log(fs.readdirSync(exports.paths.archivedSites));
 };
 
+exports.checkValidURL = function(urlGiven) {
+  console.log(url.parse(urlGiven).hostname);
+
+  if (urlGiven.indexOf('//') !== -1) {
+    var hostURL = urlGiven.substring(urlGiven.indexOf('//' + 3));
+    console.log(hostURL);
+  } else {
+    var hostURL = urlGiven;
+  }
+  var options = { method: 'HEAD', host: hostURL, path: '/'};
+  var request = http.request(options, function(response) {
+    console.log(response.statusCode);
+    console.log(response.headers.location);
+    // console.log();
+  });
+  // request.end();
+};
