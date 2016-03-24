@@ -2,6 +2,8 @@ var fs = require('fs');
 var path = require('path');
 var _ = require('underscore');
 var Promise = require('bluebird');
+var http = require('http');
+var request = require('request');
 
 /*
  * You will need to reuse the same paths many times over in the course of this sprint.
@@ -57,11 +59,10 @@ exports.addUrlToList = function(url, callback) {
       callback();
     }
   });
-  //var fsa = Promise.promisify(fs.appendFile);
 };
 
 exports.isUrlArchived = function(url, callback) {
-  // check
+
   fs.readFile(exports.paths.archivedSites, 'utf8', function(err, contents) {
     if (err) {
       callback(err);
@@ -72,16 +73,16 @@ exports.isUrlArchived = function(url, callback) {
   });
 };
 
-exports.downloadUrls = function(url, fileDest, cb) {
-  var file = fs.createWriteStream(fileDest);
-
-  var request = http.get(url, function(response) {
-    response.pipe(file);
-    file.on('finish', function() {
-      file.close(cb);  // close() is async, call cb after close completes.
-    });
-  }).on('error', function(err) { // Handle errors
-    fs.unlink(dest); // Delete the file async. (But we don't check the result)
-    if (cb) { cb(err.message); }
+exports.downloadUrls = function(urlArray) {
+  //get list of urls in sites.txt 
+  // request('http://google.com/doodle.png').pipe(fs.createWriteStream('doodle.png'))
+  _.each(urlArray, function(url) {
+    if (url.indexOf('http://') === -1) {
+      urlReal = 'http://' + url;
+    }
+    request(urlReal).pipe(fs.createWriteStream(exports.paths.archivedSites + '/' + url));
   });
+
+  console.log(fs.readdirSync(exports.paths.archivedSites));
 };
+
