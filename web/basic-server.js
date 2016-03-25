@@ -12,10 +12,10 @@ var port = 8080;
 var ip = '127.0.0.1';
 // var server = http.createServer(handler.handleRequest);
 
-var router = {
-  '/': handler.handleRequest,
-  '/styles.css': handler.handleRequest
-};
+// var router = {
+//   '/': handler.handleRequest,
+//   '/styles.css': handler.handleRequest
+// };
 
 /*
 '/www.xyz.com'
@@ -23,20 +23,20 @@ test if we have www.xyz.com donwloaded or pending
 
 */
 
-var server = http.createServer( function(req, res) {
-  console.log('Serving request type ' + req.method + ' for url ' + req.url);
+var server = http.createServer( handler.handleRequest);
+// function(req, res) {
 
-  var route = url.parse(req.url).pathname;
-  console.log(route);
+//   // var route = url.parse(req.url).pathname;
+//   // console.log(route);
 
-  if (router[route]) { //user is requesting somethign from our own site '/websitename'
-    router[route](req, res);
-  } else if ( route ) {
+//   // if (router[route]) { //user is requesting somethign from our own site '/websitename'
+//   //   router[route](req, res);
+//   // } else if ( route ) {
 
-  } else {  //error
-    httpHelper.sendResponse(res, '', 404);
-  }
-});
+//   // } else {  //error
+//     // httpHelper.sendResponse(res, '', 404);
+//   // }
+// });
 
 if (module.parent) {
   module.exports = server;

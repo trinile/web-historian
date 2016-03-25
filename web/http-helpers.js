@@ -11,14 +11,23 @@ exports.headers = headers = {
   'Content-Type': 'text/html'
 };
 
-exports.serveAssets = function(res, asset, callback) {
+exports.serveAssets = function(res, url, callback) {
   // Write some code here that helps serve up your static files!
   // (Static files are things like html (yours or archived from others...),
   // css, or anything that doesn't change often.)
   //assest = file. index. css. images. 
+  //response: 
+  console.log('in serve assets');
+  fs.readFile(__dirname + '/archives/sites' + url, function(err, contents) {
+    console.log('in filesreadfile');
+    if (err) {
+      console.log(err);
+    } else {
+      console.log('filepath ', url);
+      httpHelpers.sendResponse(res, contents, 'text/html');
+    }
+  });
 };
-
-
 
 // As you progress, keep thinking about what helper functions you can put here!
 
@@ -26,7 +35,7 @@ exports.sendResponse = function(response, data, contentType, statusCode) {
   statusCode = statusCode || 200;
   headers['Content-Type'] = contentType;
   response.writeHead(statusCode, headers);
-  response.end(data, 'utf8');
+  response.end(data);
 };
 
 exports.collectData = function(request, callback) {

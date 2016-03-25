@@ -4,16 +4,19 @@ var urlhelp = require('url');
 var httpHelpers = require('./http-helpers.js');
 var fs = require('fs');
 var path = require('path');
+var request = require('request');
 // require more modules/folders here!
 var filePages = {  
   '/styles.css': 'text/css',
-  '/app.js': 'javascript/text'
+  '/app.js': 'javascript/text',
+  '/loading.html': 'text/html',
+  'index.html': 'text/html'
 };
+
 
 exports.handleRequest = function (req, res) {
   // user is requesting root index
-  console.log( req.method, req.url);
-
+  console.log('Serving request type ' + req.method + ' for url ' + req.url);
   var filePath = req.url; 
   var ext = '.html';
   var contentType = 'text/html';
@@ -28,21 +31,43 @@ exports.handleRequest = function (req, res) {
     ext = path.extname('filePath');
   }
 
-  if (req.method === 'GET') {
-    var indexHTML = fs.readFile(__dirname + '/public/' + filePath, function(err, contents) {
-      if (err) {
-        console.log(err);
-      } else {
-        console.log('filepath ', filePath);
-        httpHelpers.sendResponse(res, contents, filePages[filePath] || 'text/html');
-      }
-    });
+  if (req.method === 'GET' ) {
+    if (!filePages[filePath]) {
+      // httpHelpers.serveAssets(res, filePath);
+      fs.readFile(path.join(__dirname, '..', '/archives/sites', filePath), function(err, contents) {
+        if (err) {
+          console.log(err);
+        } else {
+          httpHelpers.sendResponse(res, contents, 'text/html');
+        }
+      });
+
+    } else if (filePages.hasOwnProperty(filePath)) {
+      ///if asking for a homepage asset...
+      console.log(__dirname);
+      fs.readFile(__dirname + '/public/' + filePath, function(err, contents) {
+        if (err) {
+          console.log(err);
+        } else {
+          console.log('filepath ', filePath);
+          httpHelpers.sendResponse(res, contents, filePages[filePath] || 'text/html');
+        }
+      });
+      
+    }
+
+
   } else if (req.method === 'POST') {
     httpHelpers.collectData(req, function(data) {
-
-      var url = data.substring(data.indexOf('=') + 1);
-      console.log(urlhelp.parse(url));
-      url = urlhelp.parse(url).hostname; //www.google.com 
+      var url = data.substring(data.indexOf('=') + 1); 
+      // url = urlhelp.parse(url).hostname; //www.google.com 
+      console.log('url substring: ' + url);
+      console.log('data from stream collection: ' + data); //'url=userInputhere'
+      console.log('outside url: ' + url);
+      res.writeHead(301, {'Location': '/' + url });
+      res.end();
+      //perform validation and return data...
+      // var loc = __dirnam + '/public/'
 
       // archive.UrlInList(url, function(is) {
       //   if (is) { return url; }
@@ -68,10 +93,12 @@ exports.handleRequest = function (req, res) {
       //run a function that will redirect page
       //add page if it doesnt exit
       //load loading html if it is not yet downloaded
-      console.log(data); //'url=userInputhere'
       // console.log(typeof data);
-      console.log('url name: ', url);
-    });      
+    });
+    
+      // console.log(urlhelp.parse(url));
+    // res.end(); 
+    // res.end(request('/' + 'loading.html'));
   }
 
   // res.end(archive.paths.list);

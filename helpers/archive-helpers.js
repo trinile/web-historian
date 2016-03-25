@@ -30,7 +30,7 @@ exports.initialize = function(pathsObj) {
 
 exports.readListOfUrls = function(callback) { //urls is an array
   // fs.readFile
-  return new Promise(function(resolve, reject) {
+  return new Promise(function(reject, resolve) {
     fs.readFile(exports.paths.list, 'utf8', function(err, contents) {
       if (err) {
         reject( callback(err) );
@@ -43,13 +43,15 @@ exports.readListOfUrls = function(callback) { //urls is an array
 
 exports.isUrlInList = function(url, callback) {
 //do this check first when user submits url
-  fs.readFile(exports.paths.list, 'utf8', function(err, contents) {
-    if (err) {
-      callback(err);
-    } else {
-      var urlArray = contents.split('\n');
-      callback(urlArray.indexOf(url) !== -1);
-    }
+  return new Promise( function(reject, resolve) {
+    fs.readFile(exports.paths.list, 'utf8', function(err, contents) {
+      if (err) {
+        callback(err);
+      } else {
+        var urlArray = contents.split('\n');
+        callback(urlArray.indexOf(url) !== -1);
+      }
+    });
   });
 };
 
@@ -79,12 +81,12 @@ exports.isUrlArchived = function(url, callback) {
 exports.isUrlArchived = Promise.promisify(exports.isUrlArchived);
 
 exports.downloadUrls = function(urlArray, cb) {
-  return new Promise(function(resolve, reject) {
+  return new Promise(function(reject, resolve) {
     _.each(urlArray, function(url) {
       if (url.indexOf('http://') === -1) {
         urlReal = 'http://' + url;
       }
-      var stream = fs.createWriteStream(exports.paths.archivedSites + '/' + url);
+      var stream = fs.createWriteStream(exports.paths.archivedSites + '/' + url + '.html');
       request(urlReal).pipe(stream);
       stream.on('error', function(err) {
         reject(err);
