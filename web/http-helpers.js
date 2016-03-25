@@ -11,24 +11,31 @@ exports.headers = headers = {
   'Content-Type': 'text/html'
 };
 
-exports.serveAssets = function(res, url, callback) {
+exports.serveAssets = function(res, filePath, callback) {
   // Write some code here that helps serve up your static files!
   // (Static files are things like html (yours or archived from others...),
   // css, or anything that doesn't change often.)
   //assest = file. index. css. images. 
   //response: 
-  console.log('in serve assets');
-  fs.readFile(__dirname + '/archives/sites' + url, function(err, contents) {
-    console.log('in filesreadfile');
-    if (err) {
-      console.log(err);
+  console.log('in server asssets');
+  archive.isUrlArchived(filePath, function(present) {
+    console.log('inside archive is URL archived??');
+    if (present) { 
+      fs.readFile(path.join(__dirname, '..', '/archives/sites', filePath), function(err, contents) {
+        if (err) {
+          callback(err, res);
+        } else {
+          exports.sendResponse(res, contents, 'text/html');
+        }
+      });
     } else {
-      console.log('filepath ', url);
-      httpHelpers.sendResponse(res, contents, 'text/html');
+      console.log('wesbite not here should redirect to loading');
+      res.writeHead(301, {'Location': '/loading.html'});
+      res.end();
     }
   });
-};
 
+};
 // As you progress, keep thinking about what helper functions you can put here!
 
 exports.sendResponse = function(response, data, contentType, statusCode) {

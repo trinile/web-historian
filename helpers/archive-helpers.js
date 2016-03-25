@@ -28,14 +28,13 @@ exports.initialize = function(pathsObj) {
 // The following function names are provided to you to suggest how you might
 // modularize your code. Keep it clean!
 
-exports.readListOfUrls = function(callback) { //urls is an array
-  // fs.readFile
-  return new Promise(function(reject, resolve) {
+exports.readListOfUrls = function() { //urls is an array
+  return new Promise(function(resolve, reject) {
     fs.readFile(exports.paths.list, 'utf8', function(err, contents) {
       if (err) {
-        reject( callback(err) );
+        reject( err );
       } else {
-        resolve( callback(contents.split('\n')) );
+        resolve(contents.split('\n'));
       }
     });  
   });
@@ -43,22 +42,21 @@ exports.readListOfUrls = function(callback) { //urls is an array
 
 exports.isUrlInList = function(url, callback) {
 //do this check first when user submits url
-  return new Promise( function(reject, resolve) {
-    fs.readFile(exports.paths.list, 'utf8', function(err, contents) {
-      if (err) {
-        callback(err);
-      } else {
-        var urlArray = contents.split('\n');
-        callback(urlArray.indexOf(url) !== -1);
-      }
-    });
+  fs.readFile(exports.paths.list, 'utf8', function(err, contents) {
+    if (err) {
+      (callback(err));
+    } else {
+      var urlArray = contents.split('\n');
+      (callback( urlArray.indexOf(url) !== -1));
+    }
   });
 };
+
 
 exports.isUrlInList = Promise.promisify(exports.isUrlInList);
 
 exports.addUrlToList = function(url, callback) {
-  fs.appendFile(exports.paths.list, url, 'utf8', function(err) {
+  fs.appendFile(exports.paths.list, url + '\n', 'utf8', function(err) {
     if (err) {
       callback(err);
     } else {
@@ -69,32 +67,37 @@ exports.addUrlToList = function(url, callback) {
 exports.addUrlToList = Promise.promisify(exports.addUrlToList);
 
 exports.isUrlArchived = function(url, callback) {
-  fs.readFile(exports.paths.archivedSites, 'utf8', function(err, contents) {
+  // console.log('isUrlArchived is called')
+  console.log('path = ', exports.paths.archivedSites)
+  fs.readdir(exports.paths.archivedSites,  function(err, contents) {
+    console.log('callback is being called')
+    console.log(err, contents)
     if (err) {
-      (callback(err));
+      callback(err);
     } else {
-      var urlArray = contents.split('\n');
-      (callback(urlArray.indexOf(url) !== -1));
+      // var urlArray = contents.split('\n');
+      callback(contents.indexOf(url) !== -1);
     }
   });
 };
-exports.isUrlArchived = Promise.promisify(exports.isUrlArchived);
+// exports.isUrlArchived = Promise.promisify(exports.isUrlArchived);
 
-exports.downloadUrls = function(urlArray, cb) {
-  return new Promise(function(reject, resolve) {
+exports.downloadUrls = function(urlArray) {
+  return new Promise(function(resolve, reject) {
+    urlArray = urlArray.filter( function(a) { return a.length; } );
     _.each(urlArray, function(url) {
       if (url.indexOf('http://') === -1) {
         urlReal = 'http://' + url;
+        console.log(url, urlReal);
       }
-      var stream = fs.createWriteStream(exports.paths.archivedSites + '/' + url + '.html');
+      var stream = fs.createWriteStream(exports.paths.archivedSites + '/' + url);
       request(urlReal).pipe(stream);
+      stream.on('finish', function() { resolve() } );
       stream.on('error', function(err) {
         reject(err);
       });
     });
-    resolve(cb);
   });
-  // console.log(fs.readdirSync(exports.paths.archivedSites));
 };
 
 exports.checkValidURL = function(urlGiven) {

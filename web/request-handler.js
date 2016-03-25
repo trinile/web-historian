@@ -18,28 +18,20 @@ exports.handleRequest = function (req, res) {
   // user is requesting root index
   console.log('Serving request type ' + req.method + ' for url ' + req.url);
   var filePath = req.url; 
-  var ext = '.html';
-  var contentType = 'text/html';
   //if file path is simply / , then the filepath is public/index.html
   if (filePath === '/') {
     filePath = 'index.html';
-    //extension is html
-  } else if (filePages.hasOwnProperty(filePath)) {
-  //otherwise, filepath is   public/ + filepath
-    filePath = filePath;
-    //test extension name at set the appropriate header
-    ext = path.extname('filePath');
   }
+  // else if (filePages.hasOwnProperty(filePath)) {
+  // //otherwise, filepath is   public/ + filepath
+  //   filePath = filePath;
+  //   //test extension name at set the appropriate header
+  //   ext = path.extname('filePath');
 
   if (req.method === 'GET' ) {
     if (!filePages[filePath]) {
-      // httpHelpers.serveAssets(res, filePath);
-      fs.readFile(path.join(__dirname, '..', '/archives/sites', filePath), function(err, contents) {
-        if (err) {
-          console.log(err);
-        } else {
-          httpHelpers.sendResponse(res, contents, 'text/html');
-        }
+      console.log('caaling assestsssss');
+      httpHelpers.serveAssets(res, filePath, function(err, res) {
       });
 
     } else if (filePages.hasOwnProperty(filePath)) {
@@ -52,35 +44,28 @@ exports.handleRequest = function (req, res) {
           console.log('filepath ', filePath);
           httpHelpers.sendResponse(res, contents, filePages[filePath] || 'text/html');
         }
-      });
-      
+      }); 
     }
-
 
   } else if (req.method === 'POST') {
     httpHelpers.collectData(req, function(data) {
       var url = data.substring(data.indexOf('=') + 1); 
       // url = urlhelp.parse(url).hostname; //www.google.com 
-      console.log('url substring: ' + url);
-      console.log('data from stream collection: ' + data); //'url=userInputhere'
-      console.log('outside url: ' + url);
-      res.writeHead(301, {'Location': '/' + url });
+      //validate the url
+
+
+      //check if url is in list
+      archive.isUrlInList(url, function(is) {
+        if (!is) {
+          archive.addUrlToList(url);
+        }
+      });
+
+      res.writeHead(302, {'Location': '/' + url });
       res.end();
+      //check if url is in 
       //perform validation and return data...
       // var loc = __dirnam + '/public/'
-
-      // archive.UrlInList(url, function(is) {
-      //   if (is) { return url; }
-      // })
-      //   .archive.isUrlAchived(
-
-      //     )
-
-
-      //encoding issues, must replace with ://
-      // var regex = /%3A%2F%2F/;
-      // url = url.replace(regex, '://');
-      //check url
       // archive.checkValidURL(url);
       //check if url is valid
       // readlist
@@ -98,7 +83,6 @@ exports.handleRequest = function (req, res) {
     
       // console.log(urlhelp.parse(url));
     // res.end(); 
-    // res.end(request('/' + 'loading.html'));
   }
 
   // res.end(archive.paths.list);

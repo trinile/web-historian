@@ -8,7 +8,7 @@ var httpHelper = require('./http-helpers');
 // HINT: It has to do with what's in .gitignore
 initialize('./archives');
 
-var port = 8080;
+var port = 8000;
 var ip = '127.0.0.1';
 // var server = http.createServer(handler.handleRequest);
 
